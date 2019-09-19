@@ -3,10 +3,10 @@
 from distutils.core import setup
 
 setup(
-    name="Neural Processes",
+    name="neural processes",
     version="1.0",
     description="Neural Processes Implementation",
     author="Emilien Dupont, Jeff Willette",
     url="https://github.com/deltaskelta/neural-processes",
-    packages=[""],
+    packages=["neural_processes"]
 )
