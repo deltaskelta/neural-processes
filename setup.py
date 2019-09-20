@@ -8,5 +8,6 @@ setup(
     description="Neural Processes Implementation",
     author="Emilien Dupont, Jeff Willette",
     url="https://github.com/deltaskelta/neural-processes",
-    packages=["neural_processes"]
+    package_data={"neural_processes": ["py.typed"]},
+    packages=["neural_processes"],
 )
