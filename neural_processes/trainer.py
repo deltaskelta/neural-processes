@@ -1,13 +1,15 @@
-import torch
 from random import randint
-from .np import NeuralProcessImg, NeuralProcess
+from typing import List, Tuple
+
+import torch
 from torch import nn
+from torch.distributions import Distribution
 from torch.distributions.kl import kl_divergence
-from .np import context_target_split, batch_context_target_mask, img_mask_to_np_input
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
-from typing import List
-from torch.distributions import Distribution
+
+from .np import (NeuralProcess, NeuralProcessImg, batch_context_target_mask,
+                 context_target_split, img_mask_to_np_input)
 
 
 class NeuralProcessTrainer:
@@ -34,8 +36,8 @@ class NeuralProcessTrainer:
         device: torch.device,
         neural_process: NeuralProcess,
         optimizer: Optimizer,
-        num_context_range: List[int],
-        num_extra_target_range: List[int],
+        num_context_range: Tuple[int, int],
+        num_extra_target_range: Tuple[int, int],
         print_freq: int = 100,
     ) -> None:
         self.device = device
