@@ -1,7 +1,8 @@
+from typing import Any, Callable, Tuple
+
 import torch
 from torch import nn
 from torch.nn import functional as F
-from typing import Tuple
 
 
 class Encoder(nn.Module):
@@ -18,7 +19,14 @@ class Encoder(nn.Module):
         Dimension of output representation r.
     """
 
-    def __init__(self, x_dim: int, y_dim: int, h_dim: int, r_dim: int) -> None:
+    def __init__(
+        self,
+        x_dim: int,
+        y_dim: int,
+        h_dim: int,
+        r_dim: int,
+        init_func: Callable[[Any], Any] = torch.nn.init.normal_,
+    ) -> None:
         super(Encoder, self).__init__()
 
         self.x_dim = x_dim
@@ -33,6 +41,9 @@ class Encoder(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(h_dim, r_dim),
         ]
+
+        for i in [0, 2, 4]:
+            init_func(layers[i])
 
         self.input_to_hidden = nn.Sequential(*layers)
 
@@ -59,7 +70,7 @@ class MuSigmaEncoder(nn.Module):
         Dimension of latent variable z.
     """
 
-    def __init__(self, r_dim: int, z_dim: int) -> None:
+    def __init__(self, r_dim: int, z_dim: int, init_func: Callable[[Any], Any]) -> None:
         super(MuSigmaEncoder, self).__init__()
 
         self.r_dim = r_dim
@@ -68,6 +79,10 @@ class MuSigmaEncoder(nn.Module):
         self.r_to_hidden = nn.Linear(r_dim, r_dim)
         self.hidden_to_mu = nn.Linear(r_dim, z_dim)
         self.hidden_to_sigma = nn.Linear(r_dim, z_dim)
+
+        init_func(self.r_to_hidden)
+        init_func(self.hidden_to_mu)
+        init_func(self.hidden_to_sigma)
 
     def forward(  # type: ignore
         self, r: torch.Tensor
@@ -100,7 +115,14 @@ class Decoder(nn.Module):
         Dimension of y values.
     """
 
-    def __init__(self, x_dim: int, z_dim: int, h_dim: int, y_dim: int) -> None:
+    def __init__(
+        self,
+        x_dim: int,
+        z_dim: int,
+        h_dim: int,
+        y_dim: int,
+        init_func: Callable[[Any], Any] = torch.nn.init.normal_,
+    ) -> None:
         super(Decoder, self).__init__()
 
         self.x_dim = x_dim
@@ -117,9 +139,15 @@ class Decoder(nn.Module):
             nn.ReLU(inplace=True),
         ]
 
+        for i in [0, 2, 4]:
+            init_func(layers[i])
+
         self.xz_to_hidden = nn.Sequential(*layers)
         self.hidden_to_mu = nn.Linear(h_dim, y_dim)
         self.hidden_to_sigma = nn.Linear(h_dim, y_dim)
+
+        init_func(self.hidden_to_mu)
+        init_func(self.hidden_to_sigma)
 
     def forward(  # type: ignore
         self, x: torch.Tensor, z: torch.Tensor
