@@ -42,10 +42,11 @@ class Encoder(nn.Module):
             nn.Linear(h_dim, r_dim),
         ]
 
-        for i in [0, 2, 4]:
-            init_func(layers[i])
-
         self.input_to_hidden = nn.Sequential(*layers)
+
+        if init_func is not None:
+            for i in [0, 2, 4]:
+                init_func(layers[i].weight)
 
     def forward(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:  # type: ignore
         """
@@ -70,7 +71,12 @@ class MuSigmaEncoder(nn.Module):
         Dimension of latent variable z.
     """
 
-    def __init__(self, r_dim: int, z_dim: int, init_func: Callable[[Any], Any]) -> None:
+    def __init__(
+        self,
+        r_dim: int,
+        z_dim: int,
+        init_func: Callable[[Any], Any] = torch.nn.init.normal_,
+    ) -> None:
         super(MuSigmaEncoder, self).__init__()
 
         self.r_dim = r_dim
@@ -80,9 +86,10 @@ class MuSigmaEncoder(nn.Module):
         self.hidden_to_mu = nn.Linear(r_dim, z_dim)
         self.hidden_to_sigma = nn.Linear(r_dim, z_dim)
 
-        init_func(self.r_to_hidden)
-        init_func(self.hidden_to_mu)
-        init_func(self.hidden_to_sigma)
+        if init_func is not None:
+            init_func(self.r_to_hidden.weight)
+            init_func(self.hidden_to_mu.weight)
+            init_func(self.hidden_to_sigma.weight)
 
     def forward(  # type: ignore
         self, r: torch.Tensor
@@ -139,15 +146,16 @@ class Decoder(nn.Module):
             nn.ReLU(inplace=True),
         ]
 
-        for i in [0, 2, 4]:
-            init_func(layers[i])
-
         self.xz_to_hidden = nn.Sequential(*layers)
         self.hidden_to_mu = nn.Linear(h_dim, y_dim)
         self.hidden_to_sigma = nn.Linear(h_dim, y_dim)
 
-        init_func(self.hidden_to_mu)
-        init_func(self.hidden_to_sigma)
+        if init_func is not None:
+            for i in [0, 2, 4]:
+                init_func(layers[i].weight)
+
+            init_func(self.hidden_to_mu.weight)
+            init_func(self.hidden_to_sigma.weight)
 
     def forward(  # type: ignore
         self, x: torch.Tensor, z: torch.Tensor
