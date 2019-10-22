@@ -8,8 +8,9 @@ from torch.distributions.kl import kl_divergence
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 
-from .np import (NeuralProcess, NeuralProcessImg, batch_context_target_mask,
-                 context_target_split, img_mask_to_np_input)
+from .np import NeuralProcess, context_target_split
+from .np_img import (NeuralProcessImg, batch_context_target_mask,
+                     img_mask_to_np_input)
 
 
 class NeuralProcessTrainer:
@@ -39,6 +40,7 @@ class NeuralProcessTrainer:
         num_context_range: Tuple[int, int],
         num_extra_target_range: Tuple[int, int],
         print_freq: int = 100,
+        predict_ratio: float = 0.0,
     ) -> None:
         self.device = device
         self.neural_process = neural_process
@@ -46,6 +48,7 @@ class NeuralProcessTrainer:
         self.num_context_range = num_context_range
         self.num_extra_target_range = num_extra_target_range
         self.print_freq = print_freq
+        self.predict_ratio = predict_ratio
 
         # Check if neural process is for images
         self.is_img = isinstance(self.neural_process, NeuralProcessImg)
@@ -93,15 +96,14 @@ class NeuralProcessTrainer:
                     _, y_target = img_mask_to_np_input(img, target_mask)
                 else:
                     x, y = data
-
                     x_context, y_context, x_target, y_target = context_target_split(
-                        x, y, num_context, num_extra_target
+                        x,
+                        y,
+                        num_context,
+                        num_extra_target,
+                        self.device,
+                        predict_ratio=self.predict_ratio,
                     )
-
-                    x_context.to(self.device)
-                    y_context.to(self.device)
-                    x_target.to(self.device)
-                    y_target.to(self.device)
 
                     p_y_pred, q_target, q_context = self.neural_process(
                         x_context, y_context, x_target, y_target

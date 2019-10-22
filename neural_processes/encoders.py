@@ -19,14 +19,7 @@ class Encoder(nn.Module):
         Dimension of output representation r.
     """
 
-    def __init__(
-        self,
-        x_dim: int,
-        y_dim: int,
-        h_dim: int,
-        r_dim: int,
-        init_func: Callable[[Any], Any] = torch.nn.init.normal_,
-    ) -> None:
+    def __init__(self, x_dim: int, y_dim: int, h_dim: int, r_dim: int) -> None:
         super(Encoder, self).__init__()
 
         self.x_dim = x_dim
@@ -43,10 +36,6 @@ class Encoder(nn.Module):
         ]
 
         self.input_to_hidden = nn.Sequential(*layers)
-
-        if init_func is not None:
-            for i in [0, 2, 4]:
-                init_func(layers[i].weight)
 
     def forward(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:  # type: ignore
         """
@@ -71,12 +60,7 @@ class MuSigmaEncoder(nn.Module):
         Dimension of latent variable z.
     """
 
-    def __init__(
-        self,
-        r_dim: int,
-        z_dim: int,
-        init_func: Callable[[Any], Any] = torch.nn.init.normal_,
-    ) -> None:
+    def __init__(self, r_dim: int, z_dim: int) -> None:
         super(MuSigmaEncoder, self).__init__()
 
         self.r_dim = r_dim
@@ -85,11 +69,6 @@ class MuSigmaEncoder(nn.Module):
         self.r_to_hidden = nn.Linear(r_dim, r_dim)
         self.hidden_to_mu = nn.Linear(r_dim, z_dim)
         self.hidden_to_sigma = nn.Linear(r_dim, z_dim)
-
-        if init_func is not None:
-            init_func(self.r_to_hidden.weight)
-            init_func(self.hidden_to_mu.weight)
-            init_func(self.hidden_to_sigma.weight)
 
     def forward(  # type: ignore
         self, r: torch.Tensor
@@ -122,14 +101,7 @@ class Decoder(nn.Module):
         Dimension of y values.
     """
 
-    def __init__(
-        self,
-        x_dim: int,
-        z_dim: int,
-        h_dim: int,
-        y_dim: int,
-        init_func: Callable[[Any], Any] = torch.nn.init.normal_,
-    ) -> None:
+    def __init__(self, x_dim: int, z_dim: int, h_dim: int, y_dim: int) -> None:
         super(Decoder, self).__init__()
 
         self.x_dim = x_dim
@@ -149,13 +121,6 @@ class Decoder(nn.Module):
         self.xz_to_hidden = nn.Sequential(*layers)
         self.hidden_to_mu = nn.Linear(h_dim, y_dim)
         self.hidden_to_sigma = nn.Linear(h_dim, y_dim)
-
-        if init_func is not None:
-            for i in [0, 2, 4]:
-                init_func(layers[i].weight)
-
-            init_func(self.hidden_to_mu.weight)
-            init_func(self.hidden_to_sigma.weight)
 
     def forward(  # type: ignore
         self, x: torch.Tensor, z: torch.Tensor
